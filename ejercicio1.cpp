@@ -19,9 +19,8 @@ struct NodoAVL {
 struct representacionAVL {
     NodoAVL *raiz;
     int cantElementos;
-    NodoAVL *ultimo;
 
-    representacionAVL (): raiz (NULL), cantElementos (0), ultimo (NULL) {}
+    representacionAVL (): raiz (NULL), cantElementos (0) {}
 };
 
 typedef representacionAVL *AVL;
@@ -31,6 +30,11 @@ AVL CrearAVL (){
 }
 
 //ADD
+int contar(NodoAVL* nodo) {
+    if (!nodo) return 0;
+    return nodo->cantSubarbol;     
+}
+
 void actualizarSubArbol(NodoAVL *nodo) {
     if (nodo) nodo -> cantSubarbol = 1 + contar(nodo -> izq) + contar(nodo -> der);
 }
@@ -115,7 +119,8 @@ bool insertarAVLRecursivo (NodoAVL *&nodo, int id, string nombre, bool &varioAlt
             }
         }
     } else {
-        return false; 
+        nodo -> nombre = nombre;
+        return false;
     }
     actualizarSubArbol(nodo);
     return insertado;
@@ -142,11 +147,6 @@ NodoAVL* FIND (AVL arbol, int id){
 }
 
 //RANK
-int contar(NodoAVL* nodo) {
-    if (!nodo) return 0;
-    return nodo->cantSubarbol;     
-}
-
 int rankRecursivo(NodoAVL* nodo, int idMax) {
     if (!nodo) return 0;
     if (nodo -> id >= idMax) return rankRecursivo(nodo->izq, idMax);
@@ -173,7 +173,6 @@ void destruirRecursivo (NodoAVL *&nodo){
 
 void DESTRUIR (AVL& arbol){
     destruirRecursivo (arbol -> raiz);
-    arbol -> ultimo = NULL;
     delete arbol;
     arbol = NULL;
 }
