@@ -12,38 +12,35 @@ Es una letra de práctica armada por mí con el mismo estilo del obligatorio. No
 
 ---
 
-## Ejercicio 1: Ranking de jugadores (AVL)
+## Ejercicio 1: Registro de jugadores (AVL por id)
 
-**Estructura obligatoria:** dos árboles AVL. Uno ordenado por `id` y otro por puntaje (mayor primero, empate por `id` menor).
+**Estructura obligatoria:** un único árbol AVL ordenado por `id`. Cada nodo guarda `id`, `nombre`, el factor de balance `fVal` y `cantSubarbol` (cantidad de nodos de su subárbol).
 
 **Entrada:** una línea con `N` (cantidad de acciones) y luego `N` acciones, una por línea:
 
 | Acción | Efecto | Salida |
 |---|---|---|
-| `ADD id nombre puntos` | Agrega el jugador. Si el `id` ya existe, actualiza su puntaje. | nada |
-| `FIND id` | Busca por id. | `nombre puntos`, o `jugador_no_encontrado` |
-| `RANK puntos` | Cuenta los jugadores con puntaje estrictamente mayor a `puntos`. | un entero |
-| `TOP1` | Jugador con mejor puntaje (empate: menor id). | `nombre puntos`, o `sin_jugadores` |
+| `ADD id nombre` | Agrega el jugador. Si el `id` ya existe, actualiza su nombre. | nada |
+| `FIND id` | Busca por id. | `nombre`, o `jugador_no_encontrado` |
+| `RANK id` | Cuenta los jugadores con id estrictamente menor a `id`. | un entero |
 | `COUNT` | Cantidad de jugadores. | un entero |
 
-**Complejidad:** `ADD`, `FIND` y `RANK` en O(log n). `TOP1` y `COUNT` en O(1).
+**Complejidad:** `ADD`, `FIND` y `RANK` en O(log n). `COUNT` en O(1).
 
 **Ejemplo**
 ```
-7
-ADD 1 ana 50
-ADD 2 beto 80
-ADD 3 carla 80
-FIND 2
-RANK 50
-TOP1
+6
+ADD 10 ana
+ADD 5 beto
+ADD 20 carla
+FIND 5
+RANK 20
 COUNT
 ```
 Salida:
 ```
-beto 80
+beto
 2
-beto 80
 3
 ```
 
