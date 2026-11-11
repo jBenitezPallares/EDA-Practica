@@ -46,78 +46,103 @@ beto
 
 ---
 
-## Ejercicio 2: Tabla de recursos web (hash cerrado)
+## Ejercicios 2 y 3: Tabla de recursos web
 
-**Estructura obligatoria:** una única tabla hash cerrada.
-- Función de Horner.
-- Tamaño primo, el primero mayor al doble de `N`.
-- Exploración cuadrática.
-- Borrado lógico.
+Los dos ejercicios tienen **el mismo problema, la misma estructura de dos niveles y la misma entrada y salida**. La única diferencia es cómo resuelven las colisiones en las tablas hash.
 
-La clave es `dominio + path`. Cada recurso tiene `titulo` y `tiempo`.
+**Estructura común**
+- Una tabla hash de dominios. Cada dominio tiene su propia tabla hash de paths.
+- Cada dominio guarda `cantElementos` y una **lista doblemente enlazada** (`sig` y `ant`) con sus recursos **ordenados por `tiempo` descendente**. Si hay empate, el recurso insertado después queda después.
+- La tabla principal guarda la cantidad total de recursos.
+- Función de Horner como hash principal.
+- Tamaño de cada tabla: el primer primo mayor al doble de su tamaño inicial.
+- Cada recurso tiene `titulo` y `tiempo`.
+- `cantElementos` cuenta solo los recursos vivos (los borrados lógicamente no cuentan).
 
 **Acciones**
 
 | Acción | Efecto | Salida |
 |---|---|---|
-| `PUT dom path titulo tiempo` | Inserta, o reemplaza si ya existe. | nada |
+| `PUT dom path titulo tiempo` | Inserta. Si el recurso ya existe, reemplaza `titulo` y `tiempo` y lo reubica en la lista del dominio. | nada |
 | `GET dom path` | Busca el recurso. | `titulo tiempo`, o `recurso_no_encontrado` |
 | `REMOVE dom path` | Borra el recurso. | nada |
 | `CONTAINS dom path` | Verifica si existe. | `true` o `false` |
 | `COUNT_DOMAIN dom` | Cantidad de recursos del dominio. | un entero |
-| `LIST_DOMAIN dom` | Lista los recursos del dominio, uno por línea, en orden de inserción. | `path titulo tiempo` por línea |
+| `LIST_DOMAIN dom` | Lista los paths del dominio por `tiempo` descendente. | los paths en una línea separados por espacios, o `sin_informacion` si no hay |
 | `CLEAR_DOMAIN dom` | Borra todos los recursos del dominio. | nada |
 | `SIZE` | Total de recursos. | un entero |
 | `CLEAR` | Vacía la tabla. | nada |
 
+**Complejidad (promedio)**
+
+| Operación | Complejidad |
+|---|---|
+| `GET`, `CONTAINS`, `REMOVE`, `COUNT_DOMAIN`, `SIZE` | O(1) |
+| `PUT` | O(k), porque inserta en la lista ordenada |
+| `LIST_DOMAIN` | O(k) |
+| `CLEAR_DOMAIN` | O(tamaño de la tabla de paths del dominio) en el ejercicio 2; O(k) en el 3 |
+
+Acá `k` es la cantidad de recursos vivos del dominio. Para que `REMOVE` sea O(1), el nodo se desengancha de la lista del dominio usando `ant` y `sig`, sin recorrerla.
+
+---
+
+### Ejercicio 2: hash cerrado
+
+- Las dos tablas (dominios y paths) usan **direccionamiento abierto con exploración cuadrática** (`fHashColisiones`).
+- El borrado es **lógico**: el nodo queda en la tabla de paths marcado como `estaBorrado`, pero se saca de la lista del dominio.
+- `GET`, `CONTAINS` y la búsqueda de `PUT` no deben cortar la exploración en un nodo borrado. Solo un hueco real (`NULL`) la corta.
+- `PUT` de un path que estaba borrado **reutiliza ese mismo nodo**: lo marca como vivo, actualiza `titulo` y `tiempo`, lo vuelve a insertar en la lista ordenada y suma los dos contadores.
+- `CLEAR` y `CLEAR_DOMAIN` liberan todos los nodos de la tabla, incluidos los borrados, y dejan las posiciones en `NULL`.
+
 **Ejemplo**
 ```
-8
+11
 PUT a.com /x T1 10
 PUT a.com /y T2 20
 PUT b.com /x T3 30
 GET a.com /y
+GET c.com /x
 REMOVE a.com /x
 CONTAINS a.com /x
 COUNT_DOMAIN a.com
+LIST_DOMAIN a.com
+LIST_DOMAIN c.com
 SIZE
 ```
 Salida:
 ```
 T2 20
+recurso_no_encontrado
 false
 1
+/y
+sin_informacion
 2
 ```
 
 ---
 
-## Ejercicio 3: Tabla de recursos web (hash de dos niveles)
+### Ejercicio 3: hash abierto (encadenado)
 
-Mismo formato de entrada y salida que el ejercicio 2.
+- Las dos tablas (dominios y paths) resuelven las colisiones **encadenando** nodos en una lista por posición (`sig` entre dominios, `sigPath` entre paths).
+- El borrado es **físico**: se saca el nodo de la lista del bucket y también de la lista ordenada del dominio, y se libera.
+- Cada `nodoPath` está en **dos listas a la vez**: la del bucket y la del dominio. Al borrar o cambiar el `tiempo` hay que actualizar las dos.
 
-**Estructura obligatoria:**
-- Una tabla hash abierta (con listas) de dominios.
-- Cada dominio tiene su propia tabla hash de paths y una lista enlazada con sus recursos en orden de inserción.
-
-**Complejidad (promedio):**
-- `PUT`, `GET`, `REMOVE` y `CONTAINS` en O(1).
-- `COUNT_DOMAIN` en O(1).
-- `LIST_DOMAIN` y `CLEAR_DOMAIN` en O(k), con k la cantidad de recursos del dominio.
-
-**Ejemplo (con `LIST_DOMAIN`)**
+**Ejemplo**
 ```
-5
+7
 PUT a.com /x T1 10
 PUT a.com /y T2 20
+PUT a.com /z T3 15
 LIST_DOMAIN a.com
 CLEAR_DOMAIN a.com
+LIST_DOMAIN a.com
 SIZE
 ```
 Salida:
 ```
-/x T1 10
-/y T2 20
+/y /z /x
+sin_informacion
 0
 ```
 
